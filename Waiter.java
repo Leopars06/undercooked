@@ -2,6 +2,7 @@ public class waiter {
     private String name;
     public Waiter(String name) { // constructor
         this.name = name;
+        //test
     }
 
     //be able to seat customers    
