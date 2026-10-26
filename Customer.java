@@ -25,6 +25,11 @@ public class Customer {
         state = State.SEATED;
     }
 
+    // Set customer state to prdered
+    public void setOrdered() {
+        state = State.ORDERED;
+    }
+
     // Set customer state to eating after being served
     public void eating() {
         state = State.EATING;
