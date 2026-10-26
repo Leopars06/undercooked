@@ -4,6 +4,7 @@ public class Customer {
     public enum State {
         WAITING,
         SEATED,
+        ORDERED,
         EATING,
         READY_TO_PAY,
         PAID,
