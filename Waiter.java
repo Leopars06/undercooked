@@ -28,5 +28,9 @@ public class waiter {
         System.out.println(name + " made customer wait");
     }
 
+    public void idle() {
+        System.out.println("Waiter is waiting...");
+    }
+
     }
 
