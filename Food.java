@@ -1,16 +1,18 @@
 public class Food {
-    public enum state {
-        preparing,
-        ready,
-        served
-    }
-    private preperation_units;
+    private final String name;
+    private final double price;
+    private final int defaultPreparationUnits;
 
-    public Food(int choice){
-        if(choice==1) preperation_units=1;//salad
-        if(choice==2) preperation_units=1;//burger
-        if(choice==3) preperation_units=2;//pasta
+    public Food(String name, double price, int defaultPreparationUnits) {
+        if (name == null || name.trim().isEmpty() || price < 0 || defaultPreparationUnits < 1) {
+            throw new IllegalArgumentException("Food must have a name, valid price, and cook time.");
+        }
+        this.name = name;
+        this.price = price;
+        this.defaultPreparationUnits = defaultPreparationUnits;
     }
 
-    public void cooking(){...}//decrease preperation units
+    public String getName() { return name; }
+    public double getPrice() { return price; }
+    public int getDefaultPreparationUnits() { return defaultPreparationUnits; }
 }

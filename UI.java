@@ -2,66 +2,63 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-/*
-Handles user inputs and outputs
- */
 public class UI {
     private final Scanner scanner = new Scanner(System.in);
 
-    public void displayState(int turn, double revenue, List<Customer> paidCustomers, List<Customer> waitingQueue, List<Table> tables, List<Order> allOrders) {
-        double avgSatisfaction = paidCustomers.stream().mapToInt(Customer::getSatisfaction).average().orElse(0.0);
-
-        System.out.println("\n==================== TURN " + turn + "/18 ====================");
-        System.out.printf("Revenue: $%.2f | Paid Customers: %d | Avg Satisfaction: %.2f%n", revenue, paidCustomers.size(), avgSatisfaction);
-        System.out.println("-------------------------------------------------");
-
-        String queue = waitingQueue.stream().map(c -> String.format("C%d(Sat:%d)", c.getId(), c.getSatisfaction())).collect(Collectors.joining(", "));
-        System.out.println("Waiting Queue: " + (queue.isEmpty() ? "[Empty]" : queue));
-
+    public void displayState(int turn, double revenue, List<Customer> paidCustomers,
+                             List<Customer> waitingQueue, List<Table> tables, List<Order> allOrders) {
+        double average = paidCustomers.stream()
+                .mapToInt(Customer::getSatisfaction).average().orElse(0.0);
+        System.out.printf("%n==================== TURN %d/18 ====================%n", turn);
+        System.out.printf("Revenue: $%.2f | Paid: %d | Avg satisfaction: %.1f%n",
+                revenue, paidCustomers.size(), average);
+        String queue = waitingQueue.stream()
+                .map(c -> String.format("C%d(sat:%d)", c.getId(), c.getSatisfaction()))
+                .collect(Collectors.joining(", "));
+        System.out.println("Waiting queue: " + (queue.isEmpty() ? "[Empty]" : queue));
         System.out.println("Tables:");
         for (Table table : tables) {
-            if (table.isOccupied()) {
-                Customer c = table.getCustomer();
-                Order o = c.getOrder();
-                String orderInfo = (o != null) ? String.format("%s (%s)", o.getItem().getName(), o.getStatus()) : "No Order";
-                System.out.printf("  - Table %d: [OCCUPIED by C%d] Status: %s, Sat: %d, Order: %s%n",
-                        table.getTableId(), c.getId(), c.getStatus(), c.getSatisfaction(), orderInfo);
+            if (!table.isOccupied()) {
+                System.out.printf("  Table %d: [EMPTY]%n", table.getTableId());
             } else {
-                System.out.printf("  - Table %d: [EMPTY]%n", table.getTableId());
+                Customer c = table.getCustomer();
+                Order order = c.getOrder();
+                String description = order == null ? "No order" :
+                        order.getItem().getName() + " (" + order.getStatus() + ")";
+                System.out.printf("  Table %d: C%d | %s | sat:%d | %s%n",
+                        table.getTableId(), c.getId(), c.getState(),
+                        c.getSatisfaction(), description);
             }
         }
+        String kitchen = allOrders.stream().filter(o -> !o.isServed())
+                .map(o -> String.format("C%d %s [%s, %d left]", o.getCustomer().getId(),
+                        o.getItem().getName(), o.getStatus(), o.getPreparationUnitsLeft()))
+                .collect(Collectors.joining(", "));
+        System.out.println("Kitchen: " + (kitchen.isEmpty() ? "[No open orders]" : kitchen));
         System.out.println("-------------------------------------------------");
     }
 
     public int getManagerChoice(String prompt, int max) {
-        int choice = -1;
-        while (choice < 0 || choice > max) {
+        while (true) {
             System.out.print(prompt);
+            String line = scanner.nextLine();
             try {
-                choice = Integer.parseInt(scanner.nextLine());
-                if (choice < 0 || choice > max) {
-                    System.out.println("Invalid choice. Please try again.");
-                }
+                int choice = Integer.parseInt(line.trim());
+                if (choice >= 0 && choice <= max) return choice;
+                System.out.println("Invalid choice. Please try again.");
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter a number.");
             }
         }
-        return choice;
     }
 
-    public void showMessage(String message) {
-        System.out.println(message);
-    }
+    public void showMessage(String message) { System.out.println(message); }
 
-    public void showFinalResult(boolean victory, double revenue, int paidCount, double avgSatisfaction) {
+    public void showFinalResult(boolean victory, double revenue, int paidCount, double average) {
         System.out.println("\n==================== GAME OVER ====================");
-        System.out.printf("Final Revenue: $%.2f%n", revenue);
-        System.out.printf("Total Paid Customers: %d%n", paidCount);
-        System.out.printf("Average Satisfaction: %.2f%n", avgSatisfaction);
-        if (victory) {
-            System.out.println("Result: VICTORY! Congrats!");
-        } else {
-            System.out.println("Result: DEFEAT :(");
-        }
+        System.out.printf("Final revenue: $%.2f%n", revenue);
+        System.out.printf("Paid customers: %d%n", paidCount);
+        System.out.printf("Average satisfaction: %.1f%n", average);
+        System.out.println("Result: " + (victory ? "VICTORY" : "DEFEAT"));
     }
 }
