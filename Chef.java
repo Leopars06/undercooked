@@ -4,17 +4,10 @@ public class Chef {
             System.out.println("Chef has nothing to cook!");
             return;
         }
-
-        if (order.isReady) {
-            System.out.println("This order is done!");
+        if (order.isReady() || order.isServed()) {
+            System.out.println("This order is already done!");
             return;
         }
-
-        System.out.println("Chef is prepping the order for the seated customer...");
-        order.cookOneTurn(); // Advances cooking!
-    }
-
-    public void idle() {
-        System.out.println("Chef is waiting...");
+        order.cookOneTurn();
     }
 }
