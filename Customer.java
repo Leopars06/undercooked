@@ -62,17 +62,5 @@ public class Customer {
         }
         state = State.PAID;
     }
-
-
-    public void loseSatisfaction(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Satisfaction loss cannot be negative.");
-        }
-        if (state == State.WAITING || state == State.SEATED) {
-            satisfaction = Math.max(0, satisfaction - amount);
-            if (satisfaction == 0) {
-                state = State.LEFT;
-            }
-        }
-    }
+    public abstract void loseSatisfaction();
 }
