@@ -7,10 +7,10 @@ public class Menu {
     private final List<Food> foods = new ArrayList<>();
 
     public Menu() {
-        // retaqin the three original dishes, prices, and preparation times.
-        foods.add(new Food("Salad", 9.0, 1));
-        foods.add(new Food("Burger", 15.0, 1));
-        foods.add(new Food("Pasta", 18.0, 2));
+        // retain the three original dishes, prices, and preparation times.
+        foods.add(new Food("Salad \uD83E\uDD57", 9.00, 1));
+        foods.add(new Food("Burger \uD83C\uDF54", 15.00, 1));
+        foods.add(new Food("Pasta \uD83C\uDF5D", 18.00, 2));
     }
 
     public List<Food> getFoods() { return Collections.unmodifiableList(foods); }
