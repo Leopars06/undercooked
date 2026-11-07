@@ -12,7 +12,7 @@ public class Table {
     public boolean isOccupied() { return customer != null; }
 
     public void seatCustomer(Customer nextCustomer) {
-        if (isOccupied() || nextCustomer == null || nextCustomer.getState() != Customer.State.WAITING) {
+        if (isOccupied() || nextCustomer == null || nextCustomer.getStatus() != CustomerStatus.WAITING) {
             throw new IllegalStateException("Table must be empty and customer must be waiting.");
         }
         customer = nextCustomer;
