@@ -18,8 +18,9 @@ public class Controller {
     private final UI ui = new UI();
     private final Menu menu = new Menu();
     private final Waiter waiter = new Waiter("Waiter");
-    private final Chef chef = new Chef("Gordon Ramsey");
+    private final Chef chef = new Chef("Gordon Ramsay");
     private final Cashier cashier = new Cashier("Cashier");
+    private final List<Staff> staffMembers = List.of(waiter, chef, cashier);
 
     // game state lists
     private final List<Table> tables = new ArrayList<>();
@@ -27,7 +28,7 @@ public class Controller {
     private final List<Customer> paidCustomers = new ArrayList<>();
     private final List<Order> allOrders = new ArrayList<>();
 
-    // Tracks customer eating turns internally since Customer.java does not have a tick method
+    // Tracks customer eating turns internally
     private final List<Customer> eatingCustomers = new ArrayList<>();
 
     private int nextCustomerId = 1;
@@ -42,18 +43,23 @@ public class Controller {
 
     // main game loop!!
     public void runGame() {
-        ui.showMessage("=== Welcome to UNDERCOOKED ===");
+        ui.showMessage("=== Welcome to UNDERCOOKED \uD83C\uDF54\uD83C\uDF2D\uD83C\uDF5D===");
         ui.showMessage(String.format("Goal: Serve >= %d customers, Earn >= $%.2f, Avg Satisfaction >= %.1f%%.",
                 TARGET_PAID_CUSTOMERS, TARGET_REVENUE, TARGET_AVG_SATISFACTION));
 
         for (int turn = 1; turn <= MAX_TURNS; turn++) {
+            // Reset staff task flags at the start of each turn
+            for (Staff staff : staffMembers) {
+                staff.resetTask();
+            }
+
             // Step 1: Customer Arrivals
             arriveCustomers(turn);
 
             // Turn Header State Print
             ui.displayState(turn, revenue, paidCustomers, waitingQueue, tables, allOrders);
 
-            // Step 2: Manager choices & Action execution
+            // Step 2 & 3: Manager choices & Action execution
             takeManagerChoices();
 
             // Step 4: Customers eat and automated Cashier handles transactions
@@ -73,7 +79,7 @@ public class Controller {
             if (nextCustomerId <= 6) {
                 Customer customer = new Customer(nextCustomerId++);
                 waitingQueue.add(customer);
-                ui.showMessage("\n[Event] C" + customer.getId() + " has joined the waiting queue!");
+                ui.showMessage("\n[\uD83D\uDD14] C" + customer.getId() + " has joined the waiting queue!");
             }
         }
     }
@@ -87,15 +93,16 @@ public class Controller {
 
         // 1. WAITER ACTION
         while (!waiterActionUsed) {
-            ui.showMessage("Waiter Tasks:");
-            ui.showMessage(" 1. Seat a waiting customer");
-            ui.showMessage(" 2. Take a seated customer's order");
-            ui.showMessage(" 3. Serve a READY order");
-            ui.showMessage(" 0. Wait (Do nothing)");
-            int choice = ui.getManagerChoice("Select Waiter Action: ", 3);
+            ui.showMessage("\uD83D\uDCCB Waiter Tasks:");
+            ui.showMessage(" 1. Seat a waiting customer \uD83E\uDE91");
+            ui.showMessage(" 2. Take a seated customer's order \uD83D\uDECE\uFE0F");
+            ui.showMessage(" 3. Serve a READY order \uD83C\uDF7D\uFE0F");
+            ui.showMessage(" 0. Wait (Do nothing) ⏳");
+            int choice = ui.getManagerChoice("▶\uFE0F Select Waiter Action: ", 3);
 
             if (choice == 0) {
                 ui.showMessage("Waiter is standing by.");
+                waiter.assignTask();
                 waiterActionUsed = true;
             } else if (choice == 1) {
                 waiterActionUsed = executeWaiterSeat();
@@ -108,13 +115,14 @@ public class Controller {
 
         // 2. CHEF ACTION
         while (!chefActionUsed) {
-            ui.showMessage("\nChef Tasks:");
-            ui.showMessage(" 1. Advance an order by 1 prep turn");
-            ui.showMessage(" 0. Wait (Do nothing)");
-            int choice = ui.getManagerChoice("Select Chef Action: ", 1);
+            ui.showMessage("\n\uD83E\uDDD1\u200D\uD83C\uDF73 Chef Tasks:");
+            ui.showMessage(" 1. Advance an order by 1 prep turn \uD83C\uDF73");
+            ui.showMessage(" 0. Wait (Do nothing) ⏳");
+            int choice = ui.getManagerChoice("▶\uFE0F Select Chef Action: ", 1);
 
             if (choice == 0) {
                 ui.showMessage("Chef is standing by.");
+                chef.assignTask();
                 chefActionUsed = true;
             } else if (choice == 1) {
                 chefActionUsed = executeChefCook();
@@ -124,7 +132,7 @@ public class Controller {
 
     private boolean executeWaiterSeat() {
         if (waitingQueue.isEmpty()) {
-            ui.showMessage("Error: No customers waiting in queue.");
+            ui.showMessage("❌ Error: No customers waiting in queue.");
             return false;
         }
         for (Table table : tables) {
@@ -134,14 +142,14 @@ public class Controller {
                 return true;
             }
         }
-        ui.showMessage("Error: No empty tables available.");
+        ui.showMessage("❌ Error: No empty tables available.");
         return false;
     }
 
     private boolean executeWaiterTakeOrder() {
         for (Table table : tables) {
             Customer c = table.getCustomer();
-            if (c != null && c.getState() == Customer.State.SEATED && c.getOrder() == null) {
+            if (c != null && c.getStatus() == CustomerStatus.SEATED && c.getOrder() == null) {
                 int foodIndex = (c.getId() - 1) % 3;
                 Food chosenFood = menu.getFood(foodIndex);
                 Order order = waiter.takeOrder(c, chosenFood);
@@ -149,40 +157,40 @@ public class Controller {
                 return true;
             }
         }
-        ui.showMessage("Error: No seated customers require an order to be taken.");
+        ui.showMessage("❌ Error: No seated customers require an order to be taken.");
         return false;
     }
 
     private boolean executeWaiterServe() {
         for (Order order : allOrders) {
-            if ("READY".equals(order.getStatus())) {
+            if (order.getStatus() == OrderStatus.READY) {
                 waiter.serveFood(order.getCustomer());
                 eatingCustomers.add(order.getCustomer()); // Track eating turn in controller
                 return true;
             }
         }
-        ui.showMessage("Error: No orders are currently READY to be served.");
+        ui.showMessage("❌ Error: No orders are currently READY to be served.");
         return false;
     }
 
     private boolean executeChefCook() {
         if (allOrders.isEmpty()) {
-            ui.showMessage("Error: No orders placed in the kitchen.");
+            ui.showMessage("❌ Error: No orders placed in the kitchen.");
             return false;
         }
         List<Order> cookable = new ArrayList<>();
         for (Order order : allOrders) {
-            String status = order.getStatus();
-            if ("PENDING".equals(status) || "COOKING".equals(status)) {
+            OrderStatus status = order.getStatus();
+            if (status == OrderStatus.PENDING || status == OrderStatus.COOKING) {
                 cookable.add(order);
             }
         }
         if (cookable.isEmpty()) {
-            ui.showMessage("Error: No orders are currently pending cooking.");
+            ui.showMessage("❌ Error: No orders are currently pending cooking.");
             return false;
         }
 
-        ui.showMessage("Select order to cook:");
+        ui.showMessage("Select order to cook \uD83D\uDD25:");
         for (int i = 0; i < cookable.size(); i++) {
             Order o = cookable.get(i);
             System.out.printf(" %d. C%d's %s (%d unit(s) remaining)%n",
@@ -197,22 +205,12 @@ public class Controller {
 
     // Customers eat for 1 turn. Oldest ready-to-pay customer is automatically processed by Cashier.
     private void processEatingAndPayments() {
-        // Transition eating customers to READY_TO_PAY
-        Iterator<Customer> eatingIterator = eatingCustomers.iterator();
-        while (eatingIterator.hasNext()) {
-            Customer c = eatingIterator.next();
-            if (c.getState() == Customer.State.EATING) {
-                c.readyToPay();
-                eatingIterator.remove();
-            }
-        }
-
-        // Automatic checkout processing
+        // 1. Automatic checkout processing (runs first so newly finished eaters pay next turn)
         Customer oldestToPay = null;
         Table occupiedTable = null;
         for (Table table : tables) {
             Customer c = table.getCustomer();
-            if (c != null && c.getState() == Customer.State.READY_TO_PAY) {
+            if (c != null && c.getStatus() == CustomerStatus.READY_TO_PAY) {
                 if (oldestToPay == null || c.getId() < oldestToPay.getId()) {
                     oldestToPay = c;
                     occupiedTable = table;
@@ -228,6 +226,16 @@ public class Controller {
                 occupiedTable.clearTable();
             }
         }
+
+        // 2. Transition eating customers to READY_TO_PAY for the next turn
+        Iterator<Customer> eatingIterator = eatingCustomers.iterator();
+        while (eatingIterator.hasNext()) {
+            Customer c = eatingIterator.next();
+            if (c.getStatus() == CustomerStatus.EATING) {
+                c.readyToPay();
+                eatingIterator.remove();
+            }
+        }
     }
 
     // patience logic
@@ -237,9 +245,9 @@ public class Controller {
         while (waitingIterator.hasNext()) {
             Customer c = waitingIterator.next();
             c.loseSatisfaction(SATISFACTION_LOSS_REGULAR);
-            if (c.getState() == Customer.State.LEFT) {
+            if (c.getStatus() == CustomerStatus.LEFT_UNHAPPY) {
                 waitingIterator.remove();
-                ui.showMessage("! C" + c.getId() + " got tired of waiting and left! :(");
+                ui.showMessage("\uD83D\uDE21 C" + c.getId() + " got tired of waiting and left! \uD83D\uDE21 ");
             }
         }
 
@@ -247,11 +255,14 @@ public class Controller {
         for (Table table : tables) {
             Customer c = table.getCustomer();
             if (c != null) {
-                if (c.getState() == Customer.State.SEATED || c.getState() == Customer.State.ORDERED) {
+                if (c.getStatus() == CustomerStatus.SEATED || c.getStatus() == CustomerStatus.ORDERED) {
                     c.loseSatisfaction(SATISFACTION_LOSS_REGULAR);
-                    if (c.getState() == Customer.State.LEFT) {
-                        ui.showMessage("! C" + c.getId() + " got tired of waiting and left Table " + table.getTableId() + "! :(");
+                    if (c.getStatus() == CustomerStatus.LEFT_UNHAPPY) {
+                        ui.showMessage("\uD83D\uDE21 C" + c.getId() + " got tired of waiting and left Table " + table.getTableId() + "! \uD83D\uDE21");
                         table.clearTable();
+                        if (c.getOrder() != null) {
+                            c.getOrder().setStatus(OrderStatus.CANCELLED);
+                        }
                     }
                 }
             }
