@@ -6,7 +6,7 @@ public class Waiter extends Staff {
     public void seatCustomers(Table table, Customer customer) {
         table.seatCustomer(customer);
         assignTask(); // Staff task state updated
-        System.out.printf("[Staff] %s seated C%d at Table %d.%n", getName(), customer.getId(), table.getTableId());
+        System.out.printf("%s seated C%d at Table %d.%n", getName(), customer.getId(), table.getTableId());
     }
 
     public Order takeOrder(Customer customer, Food food) {
@@ -14,7 +14,7 @@ public class Waiter extends Staff {
         customer.setOrder(order);
         customer.setOrdered();
         assignTask();
-        System.out.printf("[Staff] %s took C%d's order: %s.%n", getName(), customer.getId(), food.getName());
+        System.out.printf("%s took C%d's order: %s.%n", getName(), customer.getId(), food.getName());
         return order;
     }
 
@@ -25,7 +25,7 @@ public class Waiter extends Staff {
         customer.getOrder().markServed();
         customer.eating();
         assignTask();
-        System.out.printf("[Staff] %s served C%d's %s.%n",
+        System.out.printf("%s served C%d's %s.%n",
                 getName(), customer.getId(), customer.getOrder().getItem().getName());
     }
 }
