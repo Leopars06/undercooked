@@ -17,9 +17,9 @@ public class Controller {
     // infrastructure
     private final UI ui = new UI();
     private final Menu menu = new Menu();
-    private final Waiter waiter = new Waiter("67");
-    private final Chef chef = new Chef();
-    private final Cashier cashier = new Cashier();
+    private final Waiter waiter = new Waiter("Waiter");
+    private final Chef chef = new Chef("Gordon Ramsey");
+    private final Cashier cashier = new Cashier("Cashier");
 
     // game state lists
     private final List<Table> tables = new ArrayList<>();
