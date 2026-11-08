@@ -1,4 +1,8 @@
-public class Chef {
+public class Chef extends Staff {
+    public Chef(String name) {
+        super(name);
+    }
+
     public void cook(Order order) {
         if (order == null) {
             System.out.println("Chef has nothing to cook!");
@@ -9,5 +13,6 @@ public class Chef {
             return;
         }
         order.cookOneTurn();
+        assignTask();
     }
 }

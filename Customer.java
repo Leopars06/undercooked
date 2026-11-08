@@ -1,10 +1,6 @@
 public class Customer {
-    public enum State {
-        WAITING, SEATED, ORDERED, EATING, READY_TO_PAY, PAID, LEFT
-    }
-
     private final int id;
-    private State state = State.WAITING;
+    private CustomerStatus status = CustomerStatus.WAITING;
     private int satisfaction = 100;
     private Order order;
 
@@ -16,51 +12,49 @@ public class Customer {
     }
 
     public int getId() { return id; }
-    public State getState() { return state; }
+    public CustomerStatus getStatus() { return status; }
     public int getSatisfaction() { return satisfaction; }
     public Order getOrder() { return order; }
 
     public void setSeat() {
-        if (state != State.WAITING) {
+        if (status != CustomerStatus.WAITING) {
             throw new IllegalStateException("Only waiting customers can be seated.");
         }
-        state = State.SEATED;
+        status = CustomerStatus.SEATED;
     }
 
     public void setOrder(Order order) {
-        if (state != State.SEATED || this.order != null || order == null || order.getCustomer() != this) {
+        if (status != CustomerStatus.SEATED || this.order != null || order == null || order.getCustomer() != this) {
             throw new IllegalStateException("A seated customer may place one order.");
         }
         this.order = order;
     }
 
     public void setOrdered() {
-        if (state != State.SEATED || order == null) {
+        if (status != CustomerStatus.SEATED || order == null) {
             throw new IllegalStateException("The customer must be seated with an order.");
         }
-        state = State.ORDERED;
+        status = CustomerStatus.ORDERED;
     }
 
-
     public void eating() {
-        if (state != State.ORDERED) {
-            throw new IllegalStateException("Only ordered customers can start eating.");
+        if (status != CustomerStatus.ORDERED) {
+            throw new IllegalStateException("Only customers that have ordered can start eating.");
         }
-        state = State.EATING;
+        status = CustomerStatus.EATING;
     }
 
     public void readyToPay() {
-        if (state != State.ORDERED && state != State.EATING) {
+        if (status != CustomerStatus.ORDERED && status != CustomerStatus.EATING) {
             throw new IllegalStateException("Food must be served before payment.");
         }
-        state = State.READY_TO_PAY;
+        status = CustomerStatus.READY_TO_PAY;
     }
 
     public void setPaid() {
-        if (state != State.READY_TO_PAY) {
+        if (status != CustomerStatus.READY_TO_PAY) {
             throw new IllegalStateException("Customer is not ready to pay.");
         }
-        state = State.PAID;
+        status = CustomerStatus.PAID;
     }
-    public abstract void loseSatisfaction();
 }
