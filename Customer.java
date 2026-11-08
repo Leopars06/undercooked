@@ -1,4 +1,4 @@
-public class Customer {
+public abstract class Customer {
     private final int id;
     private CustomerStatus status = CustomerStatus.WAITING;
     private int satisfaction = 100;
@@ -57,4 +57,6 @@ public class Customer {
         }
         status = CustomerStatus.PAID;
     }
+
+    public abstract void loseSatisfaction();
 }

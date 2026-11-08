@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.*;
 
 public class Controller {
     // constants
@@ -77,7 +78,18 @@ public class Controller {
     private void arriveCustomers(int turn) {
         if (turn == 1 || (turn - 1) % ARRIVAL_INTERVAL == 0) {
             if (nextCustomerId <= 6) {
-                Customer customer = new Customer(nextCustomerId++);
+                // Determine Customer Type Polymorphically (20% Critic, 25% VIP, 55% Regular)
+                double rng = random.nextDouble();
+                if (rng < 0.20) {
+                    Customer newCustomer = new CriticCustomer(nextCustomerId++);
+                    ui.showMessage("\n✍️ A food CRITIC customer has arrived in line!");
+                } else if (rng < 0.45) {
+                    Customer newCustomer = new VIPCustomer(nextCustomerId++);
+                    ui.showMessage("\n💎 A VIP customer has arrived in line!");
+                } else {
+                    Customer newCustomer = new RegularCustomer(nextCustomerId++);
+                    ui.showMessage("\n👤 A regular customer has arrived in line.");
+                }
                 waitingQueue.add(customer);
                 ui.showMessage("\n[\uD83D\uDD14] C" + customer.getId() + " has joined the waiting queue!");
             }
@@ -221,6 +233,22 @@ public class Controller {
         if (oldestToPay != null) {
             double price = oldestToPay.getOrder().getItem().getPrice();
             if (cashier.payment(oldestToPay)) {
+                //implement Critic special effects
+                if (oldestToPay instanceof CriticCustomer) {
+                    ui.showMessage("✨ CRITIC REVIEW BONUS! Critic C" + customerToPay.getId() + " left a glowing review! +15 Satisfaction to everyone waiting!");
+                    for (Customer waiting : waitingQueue) {
+                        waiting.increaseSatisfaction(15);
+                    }
+                    for (Table t : tables) {
+                        if (t.isOccupied() && t.getCustomer().getStatus() == CustomerStatus.SEATED) {
+                            t.getCustomer().increaseSatisfaction(15);
+                        }
+                    }
+                }
+                //10% off for VIP customer
+                if (customerToPay instanceof VIPCustomer) {
+                    price = price * 0.9;
+                }
                 revenue += price;
                 paidCustomers.add(oldestToPay);
                 occupiedTable.clearTable();
