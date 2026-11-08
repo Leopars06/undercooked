@@ -9,6 +9,8 @@ public class Controller {
     private static final int TABLE_COUNT = 2;
     private static final int ARRIVAL_INTERVAL = 3;          // arrive on 1, 4, 7, 10, 13, 16
     private final Random random = new Random();
+    private boolean criticArrived = false;
+    private boolean vipArrived = false;
 
     // winning targets
     private static final int TARGET_PAID_CUSTOMERS = 4;
@@ -82,11 +84,29 @@ public class Controller {
                 double rng = random.nextDouble();
                 Customer customer;
 
-                if (rng < 0.20) {
+                // Calculate how many customer slots are left (assuming nextCustomerId starts at 1)
+                int remainingSlots = 7 - nextCustomerId;
+
+                // Force Critic if we are on the last slot and still haven't had one
+                if (!criticArrived && remainingSlots == 1 && vipArrived) {
                     customer = new CriticCustomer(nextCustomerId++);
+                    criticArrived = true;
+                    ui.showMessage("\n✍️ A food CRITIC customer has arrived in line!");
+                }
+                // Force VIP if we are on the last slot and still haven't had one
+                else if (!vipArrived && remainingSlots == 1 && criticArrived) {
+                    customer = new VIPCustomer(nextCustomerId++);
+                    vipArrived = true;
+                    ui.showMessage("\n💎 A VIP customer has arrived in line!");
+                }
+                // normal spawning
+                else if (rng < 0.20) {
+                    customer = new CriticCustomer(nextCustomerId++);
+                    criticArrived = true;
                     ui.showMessage("\n✍️ A food CRITIC customer has arrived in line!");
                 } else if (rng < 0.45) {
                     customer = new VIPCustomer(nextCustomerId++);
+                    vipArrived = true;
                     ui.showMessage("\n💎 A VIP customer has arrived in line!");
                 } else {
                     customer = new RegularCustomer(nextCustomerId++);
