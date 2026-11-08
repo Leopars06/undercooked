@@ -1,7 +1,7 @@
 public abstract class Customer {
-    private final int id;
-    private CustomerStatus status = CustomerStatus.WAITING;
-    private int satisfaction = 100;
+    protected final int id;
+    protected CustomerStatus status = CustomerStatus.WAITING;
+    protected int satisfaction = 100;
     private Order order;
 
     public Customer(int id) {
@@ -56,6 +56,11 @@ public abstract class Customer {
             throw new IllegalStateException("Customer is not ready to pay.");
         }
         status = CustomerStatus.PAID;
+    }
+
+    //for Critic effects
+    public void increaseSatisfaction(int amount) {
+        this.satisfaction = Math.min(100, this.satisfaction + amount); // Assuming max is 100
     }
 
     public abstract void loseSatisfaction();

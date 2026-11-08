@@ -1,7 +1,10 @@
-package restraunt;
-
 public class RegularCustomer extends Customer{
     public int amount = 8;
+
+    public RegularCustomer(int id) {
+        super(id);
+    }
+
     @Override
     public void loseSatisfaction() {
         if (amount < 0) {

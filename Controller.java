@@ -8,7 +8,7 @@ public class Controller {
     private static final int MAX_TURNS = 18;
     private static final int TABLE_COUNT = 2;
     private static final int ARRIVAL_INTERVAL = 3;          // arrive on 1, 4, 7, 10, 13, 16
-    private static final int SATISFACTION_LOSS_REGULAR = 8;
+    private final Random random = new Random();
 
     // winning targets
     private static final int TARGET_PAID_CUSTOMERS = 4;
@@ -80,16 +80,19 @@ public class Controller {
             if (nextCustomerId <= 6) {
                 // Determine Customer Type Polymorphically (20% Critic, 25% VIP, 55% Regular)
                 double rng = random.nextDouble();
+                Customer customer;
+
                 if (rng < 0.20) {
-                    Customer newCustomer = new CriticCustomer(nextCustomerId++);
+                    customer = new CriticCustomer(nextCustomerId++);
                     ui.showMessage("\n✍️ A food CRITIC customer has arrived in line!");
                 } else if (rng < 0.45) {
-                    Customer newCustomer = new VIPCustomer(nextCustomerId++);
+                    customer = new VIPCustomer(nextCustomerId++);
                     ui.showMessage("\n💎 A VIP customer has arrived in line!");
                 } else {
-                    Customer newCustomer = new RegularCustomer(nextCustomerId++);
+                    customer = new RegularCustomer(nextCustomerId++);
                     ui.showMessage("\n👤 A regular customer has arrived in line.");
                 }
+
                 waitingQueue.add(customer);
                 ui.showMessage("\n[\uD83D\uDD14] C" + customer.getId() + " has joined the waiting queue!");
             }
@@ -235,7 +238,7 @@ public class Controller {
             if (cashier.payment(oldestToPay)) {
                 //implement Critic special effects
                 if (oldestToPay instanceof CriticCustomer) {
-                    ui.showMessage("✨ CRITIC REVIEW BONUS! Critic C" + customerToPay.getId() + " left a glowing review! +15 Satisfaction to everyone waiting!");
+                    ui.showMessage("✨ CRITIC REVIEW BONUS! Critic C" + oldestToPay.getId() + " left a glowing review! +15 Satisfaction to everyone waiting!");
                     for (Customer waiting : waitingQueue) {
                         waiting.increaseSatisfaction(15);
                     }
@@ -246,7 +249,7 @@ public class Controller {
                     }
                 }
                 //10% off for VIP customer
-                if (customerToPay instanceof VIPCustomer) {
+                if (oldestToPay instanceof VIPCustomer) {
                     price = price * 0.9;
                 }
                 revenue += price;
@@ -272,7 +275,7 @@ public class Controller {
         Iterator<Customer> waitingIterator = waitingQueue.iterator();
         while (waitingIterator.hasNext()) {
             Customer c = waitingIterator.next();
-            c.loseSatisfaction(SATISFACTION_LOSS_REGULAR);
+            c.loseSatisfaction();
             if (c.getStatus() == CustomerStatus.LEFT_UNHAPPY) {
                 waitingIterator.remove();
                 ui.showMessage("\uD83D\uDE21 C" + c.getId() + " got tired of waiting and left! \uD83D\uDE21 ");
@@ -284,7 +287,7 @@ public class Controller {
             Customer c = table.getCustomer();
             if (c != null) {
                 if (c.getStatus() == CustomerStatus.SEATED || c.getStatus() == CustomerStatus.ORDERED) {
-                    c.loseSatisfaction(SATISFACTION_LOSS_REGULAR);
+                    c.loseSatisfaction();
                     if (c.getStatus() == CustomerStatus.LEFT_UNHAPPY) {
                         ui.showMessage("\uD83D\uDE21 C" + c.getId() + " got tired of waiting and left Table " + table.getTableId() + "! \uD83D\uDE21");
                         table.clearTable();

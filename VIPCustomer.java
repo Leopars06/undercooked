@@ -1,7 +1,10 @@
-package restraunt;
-
 public class VIPCustomer extends Customer{
     public int amount = 5;
+
+    public VIPCustomer(int id) {
+        super(id);
+    }
+
     @Override
     public void loseSatisfaction() {
         if (amount < 0) {
