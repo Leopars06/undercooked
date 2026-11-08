@@ -1,7 +1,7 @@
 package restraunt;
 
 public class RegularCustomer extends Customer{
-    public int amount = 8
+    public int amount = 8;
     @Override
     public void loseSatisfaction() {
         if (amount < 0) {

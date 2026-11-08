@@ -1,7 +1,7 @@
 package restraunt;
 
 public class CriticCustomer extends Customer{
-    public int amount = 12
+    public int amount = 12;
     @Override
     public void loseSatisfaction() {
         if (amount < 0) {
