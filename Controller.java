@@ -7,7 +7,7 @@ public class Controller {
     // constants
     private static final int MAX_TURNS = 18;
     private static final int TABLE_COUNT = 2;
-    private static final int ARRIVAL_INTERVAL = 3;          // arrive on 1, 4, 7, 10, 13, 16
+    private static final int ARRIVAL_INTERVAL = 3; // arrive on 1, 4, 7, 10, 13, 16
     private final Random random = new Random();
     private boolean criticArrived = false;
     private boolean vipArrived = false;
@@ -20,6 +20,7 @@ public class Controller {
     // infrastructure
     private final UI ui = new UI();
     private final Menu menu = new Menu();
+    private final HappyHour happyHour = new HappyHour();
     private final Host host = new Host("Host");
     private final Waiter waiter = new Waiter("Waiter");
     private final Chef chef = new Chef("Gordon Ramsay");
@@ -61,8 +62,17 @@ public class Controller {
             arriveCustomers(turn);
             processHostSeating();
 
+            // If Happy Hour is already active from the previous turn, recover satisfaction
+            // at turn start
+            if (happyHour.isActive()) {
+                applyHappyHourSatisfactionRecovery();
+            }
+
             // Turn Header State Print
-            ui.displayState(turn, revenue, paidCustomers, waitingQueue, tables, allOrders);
+            ui.displayState(turn, revenue, paidCustomers, waitingQueue, tables, allOrders, happyHour);
+
+            // Happy Hour activation option at the start of the turn (once per game)
+            promptHappyHourActivation();
 
             // Step 2 & 3: Manager choices & Action execution
             takeManagerChoices();
@@ -72,6 +82,9 @@ public class Controller {
 
             // Step 5: Queue & seated customer patience updates
             updateWaitingAndPatience();
+
+            // Advance Happy Hour duration at the end of the turn
+            happyHour.endTurn();
         }
 
         // Step 6: Final results calculation
@@ -86,7 +99,8 @@ public class Controller {
                 double rng = random.nextDouble();
                 Customer customer;
 
-                // Calculate how many customer slots are left (assuming nextCustomerId starts at 1)
+                // Calculate how many customer slots are left (assuming nextCustomerId starts at
+                // 1)
                 int remainingSlots = 7 - nextCustomerId;
 
                 // Force Critic if we are on the last slot and still haven't had one
@@ -121,7 +135,45 @@ public class Controller {
         }
     }
 
-    // Prompts the manager to delegate tasks to the Waiter and the Chef sequentially.
+    // Prompts the manager at turn start to activate Happy Hour (once per game)
+    private void promptHappyHourActivation() {
+        if (!happyHour.canActivate()) {
+            return;
+        }
+        ui.showMessage(
+                "\n\uD83C\uDF7B Happy Hour Policy (Once per game, lasts 2 turns: 20% off new orders & +15 sat recovery):");
+        ui.showMessage(" 1. Activate Happy Hour now \uD83C\uDF89");
+        ui.showMessage(" 0. Save for a later turn ⏳");
+        int choice = ui.getManagerChoice("▶\uFE0F Activate Happy Hour? ", 1);
+        if (choice == 1) {
+            happyHour.activate();
+            ui.showMessage(String.format("\uD83C\uDF89 Happy Hour ACTIVATED! (%d turns remaining)",
+                    happyHour.getRemainingTurns()));
+            applyHappyHourSatisfactionRecovery();
+        }
+    }
+
+    // Customers waiting for a table or food recover 15 satisfaction at turn start
+    // during Happy Hour
+    private void applyHappyHourSatisfactionRecovery() {
+        int recovery = HappyHour.getSatisfactionRecovery();
+        for (Customer waiting : waitingQueue) {
+            if (waiting.getStatus() == CustomerStatus.WAITING) {
+                waiting.increaseSatisfaction(recovery);
+            }
+        }
+        for (Table table : tables) {
+            Customer c = table.getCustomer();
+            if (c != null && (c.getStatus() == CustomerStatus.SEATED || c.getStatus() == CustomerStatus.ORDERED)) {
+                c.increaseSatisfaction(recovery);
+            }
+        }
+        ui.showMessage(
+                "✨ Happy Hour Boost: Waiting and seated/ordered customers recovered +" + recovery + " satisfaction!");
+    }
+
+    // Prompts the manager to delegate tasks to the Waiter and the Chef
+    // sequentially.
     private void takeManagerChoices() {
         boolean waiterActionUsed = false;
         boolean chefActionUsed = false;
@@ -167,7 +219,8 @@ public class Controller {
         }
     }
 
-    // Automated Host seats at most one waiting customer per turn if an empty table is available
+    // Automated Host seats at most one waiting customer per turn if an empty table
+    // is available
     private void processHostSeating() {
         if (waitingQueue.isEmpty() || host.hasTask()) {
             return;
@@ -210,7 +263,7 @@ public class Controller {
                     int foodIndex = (c.getId() - 1) % 3;
                     chosenFood = menu.getFood(foodIndex);
                 }
-                Order order = waiter.takeOrder(c, chosenFood);
+                Order order = waiter.takeOrder(c, chosenFood, happyHour.isActive());
                 allOrders.add(order);
                 return true;
             }
@@ -255,15 +308,18 @@ public class Controller {
                     i + 1, o.getCustomer().getId(), o.getItem().getName(), o.getPreparationUnitsLeft());
         }
         int selection = ui.getManagerChoice("Order selection (0 to cancel): ", cookable.size());
-        if (selection == 0) return false;
+        if (selection == 0)
+            return false;
 
         chef.cook(cookable.get(selection - 1));
         return true;
     }
 
-    // Customers eat for 1 turn. Oldest ready-to-pay customer is automatically processed by Cashier.
+    // Customers eat for 1 turn. Oldest ready-to-pay customer is automatically
+    // processed by Cashier.
     private void processEatingAndPayments() {
-        // 1. Automatic checkout processing (runs first so newly finished eaters pay next turn)
+        // 1. Automatic checkout processing (runs first so newly finished eaters pay
+        // next turn)
         Customer oldestToPay = null;
         Table occupiedTable = null;
         for (Table table : tables) {
@@ -277,11 +333,14 @@ public class Controller {
         }
 
         if (oldestToPay != null) {
-            double price = oldestToPay.getOrder().getItem().getPrice();
+            // Price is locked when the order was taken (VIP 10% off applied first, then
+            // Happy Hour 20% off)
+            double price = oldestToPay.getOrder().getFinalPrice();
             if (cashier.payment(oldestToPay)) {
-                //implement Critic special effects
+                // implement Critic special effects
                 if (oldestToPay instanceof CriticCustomer) {
-                    ui.showMessage("✨ CRITIC REVIEW BONUS! Critic C" + oldestToPay.getId() + " left a glowing review! +15 Satisfaction to everyone waiting!");
+                    ui.showMessage("✨ CRITIC REVIEW BONUS! Critic C" + oldestToPay.getId()
+                            + " left a glowing review! +15 Satisfaction to everyone waiting!");
                     for (Customer waiting : waitingQueue) {
                         waiting.increaseSatisfaction(15);
                     }
@@ -290,10 +349,6 @@ public class Controller {
                             t.getCustomer().increaseSatisfaction(15);
                         }
                     }
-                }
-                //10% off for VIP customer
-                if (oldestToPay instanceof VIPCustomer) {
-                    price = price * 0.9;
                 }
                 revenue += price;
                 paidCustomers.add(oldestToPay);
@@ -332,7 +387,8 @@ public class Controller {
                 if (c.getStatus() == CustomerStatus.SEATED || c.getStatus() == CustomerStatus.ORDERED) {
                     c.loseSatisfaction();
                     if (c.getStatus() == CustomerStatus.LEFT_UNHAPPY) {
-                        ui.showMessage("\uD83D\uDE21 C" + c.getId() + " got tired of waiting and left Table " + table.getTableId() + "! \uD83D\uDE21");
+                        ui.showMessage("\uD83D\uDE21 C" + c.getId() + " got tired of waiting and left Table "
+                                + table.getTableId() + "! \uD83D\uDE21");
                         table.clearTable();
                         if (c.getOrder() != null) {
                             c.getOrder().setStatus(OrderStatus.CANCELLED);

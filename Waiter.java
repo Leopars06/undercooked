@@ -10,7 +10,11 @@ public class Waiter extends Staff {
     }
 
     public Order takeOrder(Customer customer, Food food) {
-        Order order = new Order(customer, food);
+        return takeOrder(customer, food, false);
+    }
+
+    public Order takeOrder(Customer customer, Food food, boolean happyHourActive) {
+        Order order = new Order(customer, food, happyHourActive);
         customer.setOrder(order);
         customer.setOrdered();
         assignTask();

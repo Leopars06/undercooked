@@ -6,12 +6,29 @@ public class UI {
     private final Scanner scanner = new Scanner(System.in);
 
     public void displayState(int turn, double revenue, List<Customer> paidCustomers,
-                             List<Customer> waitingQueue, List<Table> tables, List<Order> allOrders) {
+            List<Customer> waitingQueue, List<Table> tables, List<Order> allOrders) {
+        displayState(turn, revenue, paidCustomers, waitingQueue, tables, allOrders, null);
+    }
+
+    public void displayState(int turn, double revenue, List<Customer> paidCustomers,
+            List<Customer> waitingQueue, List<Table> tables, List<Order> allOrders,
+            HappyHour happyHour) {
         double average = paidCustomers.stream()
                 .mapToInt(Customer::getSatisfaction).average().orElse(0.0);
         System.out.printf("%n==================== TURN %d/18 ====================%n", turn);
-        System.out.printf(" \uD83D\uDCB0 Revenue: $%.2f | \uD83D\uDCB2 Paid: %d | \uD83D\uDE0A Avg satisfaction: %.1f%n",
+        System.out.printf(
+                " \uD83D\uDCB0 Revenue: $%.2f | \uD83D\uDCB2 Paid: %d | \uD83D\uDE0A Avg satisfaction: %.1f%n",
                 revenue, paidCustomers.size(), average);
+        if (happyHour != null) {
+            if (happyHour.isActive()) {
+                System.out.printf(" \uD83C\uDF7B Happy Hour: ACTIVE (%d turn%s remaining)%n",
+                        happyHour.getRemainingTurns(), happyHour.getRemainingTurns() == 1 ? "" : "s");
+            } else if (happyHour.isUsed()) {
+                System.out.println(" \uD83C\uDF7B Happy Hour: Ended (0 turns remaining)");
+            } else {
+                System.out.println(" \uD83C\uDF7B Happy Hour: Available (1 use left)");
+            }
+        }
 
         String queue = waitingQueue.stream()
                 .map(c -> String.format("C%d(sat:%d)", c.getId(), c.getSatisfaction()))
@@ -25,8 +42,8 @@ public class UI {
             } else {
                 Customer c = table.getCustomer();
                 Order order = c.getOrder();
-                String description = order == null ? "No order" :
-                        order.getItem().getName() + " (" + order.getStatus() + ")";
+                String description = order == null ? "No order"
+                        : order.getItem().getName() + " (" + order.getStatus() + ")";
                 System.out.printf("  Table %d: C%d | %s | sat:%d | %s%n",
                         table.getTableId(), c.getId(), c.getStatus(),
                         c.getSatisfaction(), description);
@@ -47,7 +64,8 @@ public class UI {
             String line = scanner.nextLine();
             try {
                 int choice = Integer.parseInt(line.trim());
-                if (choice >= 0 && choice <= max) return choice;
+                if (choice >= 0 && choice <= max)
+                    return choice;
                 System.out.println("❌ Invalid choice. Please try again.");
             } catch (NumberFormatException e) {
                 System.out.println("❌ Invalid input. Please enter a number.");
@@ -55,7 +73,9 @@ public class UI {
         }
     }
 
-    public void showMessage(String message) { System.out.println(message); }
+    public void showMessage(String message) {
+        System.out.println(message);
+    }
 
     public void showFinalResult(boolean victory, double revenue, int paidCount, double average) {
         System.out.println("\n==================== GAME OVER ====================");
