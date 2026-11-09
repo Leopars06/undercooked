@@ -8,9 +8,18 @@ public class Menu {
 
     public Menu() {
         // retain the three original dishes, prices, and preparation times.
-        foods.add(new Food("Salad \uD83E\uDD57", 9.00, 1));
-        foods.add(new Food("Burger \uD83C\uDF54", 15.00, 1));
-        foods.add(new Food("Pasta \uD83C\uDF5D", 18.00, 2));
+        Food salad = new Food("Salad \uD83E\uDD57", 9.00, 1);
+        Food burger = new Food("Burger \uD83C\uDF54", 15.00, 1);
+        Food pasta = new Food("Pasta \uD83C\uDF5D", 18.00, 2);
+
+        foods.add(salad);
+        foods.add(burger);
+        foods.add(pasta);
+
+        // Combo meals (indices 3, 4, 5)
+        foods.add(new ComboMeal(salad, burger));
+        foods.add(new ComboMeal(salad, pasta));
+        foods.add(new ComboMeal(burger, pasta));
     }
 
     public List<Food> getFoods() { return Collections.unmodifiableList(foods); }

@@ -201,8 +201,15 @@ public class Controller {
         for (Table table : tables) {
             Customer c = table.getCustomer();
             if (c != null && c.getStatus() == CustomerStatus.SEATED && c.getOrder() == null) {
-                int foodIndex = (c.getId() - 1) % 3;
-                Food chosenFood = menu.getFood(foodIndex);
+                Food chosenFood;
+                // VIPs/Critics (or a 30% chance for Regular customers) order a ComboMeal
+                if (c instanceof VIPCustomer || c instanceof CriticCustomer || random.nextDouble() < 0.30) {
+                    int comboIndex = 3 + ((c.getId() - 1) % 3);
+                    chosenFood = menu.getFood(comboIndex);
+                } else {
+                    int foodIndex = (c.getId() - 1) % 3;
+                    chosenFood = menu.getFood(foodIndex);
+                }
                 Order order = waiter.takeOrder(c, chosenFood);
                 allOrders.add(order);
                 return true;
