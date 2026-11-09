@@ -58,9 +58,8 @@ public class Controller {
                 staff.resetTask();
             }
 
-            // Step 1: Customer Arrivals & Automated Host Seating
+            // Step 1: Customer Arrivals
             arriveCustomers(turn);
-            processHostSeating();
 
             // If Happy Hour is already active from the previous turn, recover satisfaction
             // at turn start
@@ -74,7 +73,8 @@ public class Controller {
             // Happy Hour activation option at the start of the turn (once per game)
             promptHappyHourActivation();
 
-            // Step 2 & 3: Manager choices & Action execution
+            // Step 2 & 3: Automated Host Seating, Manager choices & Action execution
+            processHostSeating();
             takeManagerChoices();
 
             // Step 4: Customers eat and automated Cashier handles transactions
