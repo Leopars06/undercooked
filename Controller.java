@@ -20,10 +20,11 @@ public class Controller {
     // infrastructure
     private final UI ui = new UI();
     private final Menu menu = new Menu();
+    private final Host host = new Host("Host");
     private final Waiter waiter = new Waiter("Waiter");
     private final Chef chef = new Chef("Gordon Ramsay");
     private final Cashier cashier = new Cashier("Cashier");
-    private final List<Staff> staffMembers = List.of(waiter, chef, cashier);
+    private final List<Staff> staffMembers = List.of(host, waiter, chef, cashier);
 
     // game state lists
     private final List<Table> tables = new ArrayList<>();
@@ -56,8 +57,9 @@ public class Controller {
                 staff.resetTask();
             }
 
-            // Step 1: Customer Arrivals
+            // Step 1: Customer Arrivals & Automated Host Seating
             arriveCustomers(turn);
+            processHostSeating();
 
             // Turn Header State Print
             ui.displayState(turn, revenue, paidCustomers, waitingQueue, tables, allOrders);
@@ -161,6 +163,20 @@ public class Controller {
                 chefActionUsed = true;
             } else if (choice == 1) {
                 chefActionUsed = executeChefCook();
+            }
+        }
+    }
+
+    // Automated Host seats at most one waiting customer per turn if an empty table is available
+    private void processHostSeating() {
+        if (waitingQueue.isEmpty() || host.hasTask()) {
+            return;
+        }
+        for (Table table : tables) {
+            if (!table.isOccupied()) {
+                Customer next = waitingQueue.remove(0);
+                host.seatCustomers(table, next);
+                return;
             }
         }
     }
