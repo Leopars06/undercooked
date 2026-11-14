@@ -115,7 +115,7 @@ java "-Dfile.encoding=UTF-8" undercookedApp
 ## 5. AI Communication History Links
 
 - **Stage 1 (Groupmates):** 
-- **Stage 2 (` / yqq808-eng`):** 
+- **Stage 2 (`Lee Yong Qian / yqq808-eng`):** [`ai-history/Lee_Yong_Qian`](https://github.com/Leopars06/undercooked/blob/Stage-2/ai-history/Lee_Yong_Qian)
 - **Stage 3 (`Li Zhe Le / Leopars06`):** [`ai-history/Li_Zhe_Le`](https://github.com/Leopars06/undercooked/tree/Stage-3/ai-history/Li_Zhe_Le)
 
 ---
