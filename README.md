@@ -117,7 +117,7 @@ java "-Dfile.encoding=UTF-8" undercookedApp
 - **Stage 1 (`Edalene Hiang`):** [`ai-history/Edalene_Hiang`](https://github.com/Leopars06/undercooked/tree/Stage-1/ai-history/Edalene_Hiang)
 - **Stage 2 (`Lee Yong Qian / yqq808-eng`):** [`ai-history/Lee_Yong_Qian`](https://github.com/Leopars06/undercooked/blob/Stage-2/ai-history/Lee_Yong_Qian)
 - **Stage 3 (`Li Zhe Le / Leopars06`):** [`ai-history/Li_Zhe_Le`](https://github.com/Leopars06/undercooked/tree/Stage-3/ai-history/Li_Zhe_Le)
-
+- Chen Yu Xuan mainly did diagrams so he did not have an AI history
 ---
 
 ## 6. Recorded Presentation Video & Timestamps
