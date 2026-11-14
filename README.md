@@ -121,7 +121,7 @@ java "-Dfile.encoding=UTF-8" undercookedApp
 
 ## 6. Recorded Presentation Video & Timestamps
 
-- **Video Link / File:** `[Insert Video Link or Filename Here]`
+- **Video Link / File:** [Watch 15-Min Presentation Video](https://youtu.be/gZQDXXrq2aA)
 
 | # | Required Segment (Section 6.2 & Slide 11) | Timestamp |
 | :--- | :--- | :--- |
