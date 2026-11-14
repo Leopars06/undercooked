@@ -114,8 +114,9 @@ java "-Dfile.encoding=UTF-8" undercookedApp
 
 ## 5. AI Communication History Links
 
+- **Stage 1 (Groupmates):** `[Insert link to groupmate branch / ai-history folder here]`
+- **Stage 2 (`yqq808-eng`):** `[Insert link to groupmate branch / ai-history folder here]`
 - **Stage 3 (`Leopars06`):** [`ai-history/stage-3/chat-01.md`](ai-history/stage-3/chat-01.md)
-- **Stage 1 & Stage 2 (Groupmates):** `[Insert link to groupmate branch / ai-history folder here]`
 
 ---
 
